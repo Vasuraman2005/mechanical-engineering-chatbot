@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mechanical Engineering Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .chat-container {
+            width: 90%;
+            max-width: 800px;
+            height: 600px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            text-align: center;
+        }
+        .chat-header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .chat-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f5f5f5;
+        }
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+        }
+        .message.user {
+            justify-content: flex-end;
+        }
+        .message-content {
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+        .message.bot .message-content {
+            background: white;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .chat-input-container {
+            padding: 20px;
+            background: white;
+            border-radius: 0 0 15px 15px;
+            border-top: 1px solid #eee;
+        }
+        .chat-input-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+        #userInput {
+            flex: 1;
+            padding: 12px 18px;
+            border: 2px solid #667eea;
+            border-radius: 25px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        #userInput:focus {
+            border-color: #764ba2;
+        }
+        #sendButton {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        #sendButton:hover {
+            transform: scale(1.05);
+        }
+        #sendButton:active {
+            transform: scale(0.95);
+        }
+        .typing-indicator {
+            display: none;
+            padding: 12px 18px;
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: fit-content;
+        }
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: typing 1.4s infinite;
+        }
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>🔧 Mechanical Engineering Chatbot</h1>
+            <p>Ask me about CNC machining, CAD, GD&T, materials, and more!</p>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot">
+                <div class="message-content">
+                    Hello! I'm your Mechanical Engineering assistant. I can help you with:
+                    <br>• CNC Machining & G-code
+                    <br>• CAD Software (SolidWorks, AutoCAD)
+                    <br>• GD&T (Geometric Dimensioning & Tolerancing)
+                    <br>• Materials Science
+                    <br>• Manufacturing Processes
+                    <br>• Thermodynamics & Fluid Mechanics
+                    <br><br>What would you like to know?
+                </div>
+            </div>
+            <div class="typing-indicator" id="typingIndicator">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        <div class="chat-input-container">
+            <div class="chat-input-wrapper">
+                <input type="text" id="userInput" placeholder="Type your question here..." />
+                <button id="sendButton" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        const typingIndicator = document.getElementById('typingIndicator');
+
+        // Knowledge base for mechanical engineering topics
+        const knowledgeBase = {
+            'cnc': {
+                keywords: ['cnc', 'machining', 'g-code', 'gcode', 'mill', 'lathe', 'turning', 'milling'],
+                response: "CNC (Computer Numerical Control) machining uses computerized controls to operate machine tools. Key aspects include:\n\n• G-code programming (G00 for rapid positioning, G01 for linear interpolation)\n• Tool path optimization\n• Feed rates and spindle speeds\n• Tooling selection\n• Work holding and fixtures\n\nWould you like to know more about a specific aspect of CNC machining?"
+            },
+            'cad': {
+                keywords: ['cad', 'solidworks', 'autocad', 'modeling', 'design', 'drawing', '3d'],
+                response: "CAD (Computer-Aided Design) is essential for mechanical engineering. Popular software includes:\n\n• SolidWorks - Parametric 3D modeling\n• AutoCAD - 2D drafting and 3D design\n• CATIA - Advanced surface modeling\n• Fusion 360 - Cloud-based CAD/CAM\n\nKey skills: sketching, constraints, assemblies, and technical drawings. What CAD topic interests you?"
+            },
+            'gdt': {
+                keywords: ['gd&t', 'gdt', 'tolerancing', 'geometric', 'dimensioning', 'datum', 'flatness', 'perpendicularity'],
+                response: "GD&T (Geometric Dimensioning & Tolerancing) defines part geometry precisely. Key concepts:\n\n• Datums (reference points/planes)\n• Form controls: flatness, straightness, circularity\n• Orientation: perpendicularity, parallelism, angularity\n• Location: position, concentricity\n• Profile and runout controls\n\nGD&T ensures parts fit and function correctly. Need help with specific symbols?"
+            },
+            'materials': {
+                keywords: ['material', 'steel', 'aluminum', 'alloy', 'metal', 'plastic', 'composite'],
+                response: "Materials selection is crucial in mechanical design. Common materials:\n\n• Steels: High strength, various grades (mild, stainless, tool steel)\n• Aluminum: Lightweight, good corrosion resistance\n• Titanium: High strength-to-weight ratio\n• Plastics: ABS, Nylon, PEEK for various applications\n• Composites: Carbon fiber, fiberglass\n\nConsider: strength, weight, cost, machinability, and environment. Which material interests you?"
+            },
+            'manufacturing': {
+                keywords: ['manufacturing', 'process', 'production', 'casting', 'forging', 'welding', 'assembly'],
+                response: "Manufacturing processes transform raw materials into products:\n\n• Casting: Pour molten material into molds\n• Forging: Shape metal using compressive forces\n• Machining: Remove material (turning, milling, drilling)\n• Welding: Join materials permanently\n• Sheet metal: Cutting, bending, forming\n• Additive manufacturing: 3D printing\n\nEach has advantages for different applications. Which process would you like to explore?"
+            },
+            'thermodynamics': {
+                keywords: ['thermodynamics', 'heat', 'energy', 'entropy', 'engine', 'cycle', 'temperature'],
+                response: "Thermodynamics studies energy transfer and conversion:\n\n• First Law: Energy conservation (ΔU = Q - W)\n• Second Law: Entropy always increases\n• Heat engines: Convert thermal energy to work\n• Refrigeration: Remove heat from cold space\n• Carnot cycle: Ideal thermodynamic cycle\n\nApplications: engines, HVAC, power plants. Need help with a specific concept?"
+            },
+            'fluid': {
+                keywords: ['fluid', 'hydraulic', 'pneumatic', 'flow', 'pressure', 'bernoulli'],
+                response: "Fluid mechanics covers liquids and gases in motion:\n\n• Bernoulli's equation: Relates pressure, velocity, height\n• Reynolds number: Laminar vs turbulent flow\n• Hydraulics: Liquid power transmission\n• Pneumatics: Compressed air systems\n• Pumps and compressors\n\nApplications: piping systems, aircraft, vehicles. What aspect interests you?"
+            },
+            'placement': {
+                keywords: ['placement', 'job', 'interview', 'career', 'aptitude', 'technical'],
+                response: "Preparing for placements? Focus on:\n\n• Technical knowledge: Core ME subjects\n• Aptitude: Quantitative, logical reasoning\n• CAD skills: SolidWorks proficiency\n• Problem-solving abilities\n• Communication skills\n• Company research\n\nCommon interview topics: strength of materials, thermodynamics, manufacturing. Need help with specific preparation?"
+            }
+        };
+
+        function sendMessage() {
+            const message = userInput.value.trim();
+            if (message === '') return;
+
+            // Add user message
+            addMessage(message, 'user');
+            userInput.value = '';
+
+            // Show typing indicator
+            typingIndicator.style.display = 'block';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Generate bot response
+            setTimeout(() => {
+                const response = generateResponse(message);
+                typingIndicator.style.display = 'none';
+                addMessage(response, 'bot');
+            }, 1000);
+        }
+
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = text.replace(/\n/g, '<br>');
+            
+            messageDiv.appendChild(contentDiv);
+            chatMessages.insertBefore(messageDiv, typingIndicator);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function generateResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            
+            // Check knowledge base
+            for (const [topic, data] of Object.entries(knowledgeBase)) {
+                for (const keyword of data.keywords) {
+                    if (lowerMessage.includes(keyword)) {
+                        return data.response;
+                    }
+                }
+            }
+
+            // Greeting responses
+            if (lowerMessage.match(/\b(hi|hello|hey|greetings)\b/)) {
+                return "Hello! How can I help you with mechanical engineering today?";
+            }
+
+            // Thanks responses
+            if (lowerMessage.match(/\b(thank|thanks|thx)\b/)) {
+                return "You're welcome! Feel free to ask me anything about mechanical engineering.";
+            }
+
+            // Default response
+            return "I can help with CNC machining, CAD, GD&T, materials, manufacturing processes, thermodynamics, and fluid mechanics. Could you please be more specific about what you'd like to know?";
+        }
+
+        // Allow Enter key to send message
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
